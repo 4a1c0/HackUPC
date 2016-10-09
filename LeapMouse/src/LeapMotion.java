@@ -14,8 +14,10 @@ import java.awt.Dimension;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
 
+
+
 class SampleListener extends Listener {
-	
+
 	public Robot mouse;
 	
 	
@@ -27,7 +29,9 @@ class SampleListener extends Listener {
         System.out.println("Connected");
         controller.enableGesture(Gesture.Type.TYPE_SWIPE);
         controller.enableGesture(Gesture.Type.TYPE_CIRCLE);
-        controller.enableGesture(Gesture.Type.TYPE_SCREEN_TAP);
+        //controller.enableGesture(Gesture.Type.TYPE_SCREEN_TAP);
+
+        controller.setPolicy(Controller.PolicyFlag.POLICY_BACKGROUND_FRAMES);
     }
 
     public void onDisconnect(Controller controller) {
@@ -45,17 +49,37 @@ class SampleListener extends Listener {
     		mouse = new Robot();
     	} catch (Exception e) {}
     	
+    	
+    	
         Frame frame = controller.frame();
+        Frame anterior = controller.frame(1);
+       
+        
         
         InteractionBox pla = frame.interactionBox();
         for(Finger dit : frame.fingers()) {
-        	if ( dit.type() == Finger.Type.TYPE_INDEX) {
-        		Vector ditPos = dit.stabilizedTipPosition();
-        		Vector normPosDit = pla.normalizePoint(ditPos);
-        		Dimension pantalla = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        		mouse.mouseMove((int) (pantalla.width * normPosDit.getX()), (int) (pantalla.height - (pantalla.height * normPosDit.getY())));
+        	for(Finger dit2 : anterior.fingers()){
+        		
+        	
+        		if ( dit.type() == Finger.Type.TYPE_INDEX) {
+        			Vector ditPos = dit.stabilizedTipPosition();
+        			Vector normPosDit = pla.normalizePoint(ditPos);
+        			Dimension pantalla = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+
+        			mouse.mouseMove((int) (pantalla.width * normPosDit.getX()), (int) (pantalla.height - (pantalla.height * normPosDit.getY())));
+        			if (dit2.type() == Finger.Type.TYPE_THUMB){
+        				if (dit.isExtended() && dit2.isExtended()){
+        					mouse.mousePress(InputEvent.BUTTON1_MASK);
+        					mouse.mouseRelease(InputEvent.BUTTON1_MASK);
+        					try { 
+                        		Thread.sleep(60);
+                        	} catch (Exception e) {}
+        				}
+        			}
+        		}
         		
         	}
+
         }
         
 
@@ -102,7 +126,7 @@ class SampleListener extends Listener {
     }
 }
 
-class Sample {
+class LeapMotion {
     public static void main(String[] args) {
         // Create a sample listener and controller
         SampleListener listener = new SampleListener();
@@ -120,6 +144,11 @@ class Sample {
         }
 
         // Remove the sample listener when done
-        controller.removeListener(listener);
-    }
+        controller.removeListener(listener);}
 }
+
+
+
+
+    
+
